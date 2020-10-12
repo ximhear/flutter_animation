@@ -41,13 +41,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double dy = 0;
   AnimationController controller;
   AnimationController controller1;
+  AnimationController controllerScaleUp;
+  AnimationController controllerScaleDown;
   Animation<double> animationX;
   Animation<double> animationShow;
+  Animation<double> animationScaleUp;
+  Animation<double> animationScaleDown;
   Tween<Offset> tweenX;
   Tween<double> tweenHide;
   Tween<double> tweenShow;
+  Tween<double> tweenScaleUp;
+  Tween<double> tweenScaleDown;
   double opacity = 1;
   double ratio = 1;
+  double scale = 1;
 
   @override
   void initState() {
@@ -58,6 +65,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     animationShow = CurvedAnimation(parent: controller1, curve: Curves.easeIn);
     tweenHide = Tween<double>(begin: 1, end: 0);
     tweenShow = Tween<double>(begin: 0, end: 1);
+
+    controllerScaleUp = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
+    controllerScaleDown = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
+    animationScaleUp = CurvedAnimation(parent: controllerScaleUp, curve: Curves.easeIn);
+    animationScaleDown = CurvedAnimation(parent: controllerScaleDown, curve: Curves.easeIn);
+    tweenScaleUp = Tween<double>(begin: 1, end: 1.5);
+    tweenScaleDown = Tween<double>(begin: 1.5, end: 1);
   }
 
   @override
@@ -77,8 +91,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         MediaQuery.of(context).padding.left -
         MediaQuery.of(context).padding.right;
 
-    var left = (availableWidth - 100) / 2 + 50;
-    var top = (availableHeight - 100) / 2 + 50;
+    var left = (availableWidth - 100 * scale) / 2 + 50 * scale;
+    var top = (availableHeight - 100 * scale) / 2 + 50 * scale;
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -98,7 +112,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           },
           onVerticalDragUpdate: (detail) {
             print("drag update : ${detail.localPosition}");
-            RenderBox r = kkk.currentContext.findRenderObject();
             var newPt = detail.localPosition;
             setState(() {
               dx += newPt.dx - currentPt.dx;
@@ -107,6 +120,43 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             print("$dx, $dy");
             currentPt = detail.localPosition;
           },
+          onLongPress: () {
+            print("onLongPress");
+            tweenScaleUp.animate(controllerScaleUp)..addListener(() {
+              setState(() {
+                scale = tweenScaleUp.evaluate(animationScaleUp);
+                print("scale : $scale");
+              });
+            });
+            controllerScaleUp.reset();
+            controllerScaleUp.forward();
+          },
+          onLongPressStart: (details) {
+            print("onLongPressStart");
+            currentPt = details.localPosition;
+          },
+          onLongPressMoveUpdate: (details) {
+            // print("onLongPressMoveUpdate");
+            var newPt = details.localPosition;
+            setState(() {
+              dx += newPt.dx - currentPt.dx;
+              dy += newPt.dy - currentPt.dy;
+            });
+            print("$dx, $dy");
+            currentPt = details.localPosition;
+          },
+          onLongPressEnd: (details) {
+            print("onLongPressEnd : ${details.velocity}");
+            tweenScaleDown.animate(controllerScaleDown)..addListener(() {
+              setState(() {
+                scale = tweenScaleDown.evaluate(animationScaleDown);
+                print("scale : $scale");
+              });
+            });
+            controllerScaleDown.reset();
+            controllerScaleDown.forward();
+            aaa();
+          },
           child: Stack(
             children: [
               Expanded(child: Container(
@@ -114,10 +164,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               )),
               Positioned(
                 key: kkk,
-                left: left + dx - 50 * ratio,
-                top: top + dy - 50 * ratio,
-                width: 100 * ratio,
-                height: 100 * ratio,
+                left: left + dx - 50 * ratio * scale,
+                top: top + dy - 50 * ratio * scale,
+                width: 100 * ratio * scale,
+                height: 100 * ratio * scale,
                 child: Opacity(
                   opacity: opacity,
                   child: Container(
