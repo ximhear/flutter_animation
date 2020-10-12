@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 // class Hello extends StatelessWidget {
 
   GlobalKey kkk = GlobalKey();
@@ -40,14 +40,24 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   double dx = 0;
   double dy = 0;
   AnimationController controller;
+  AnimationController controller1;
   Animation<double> animationX;
+  Animation<double> animationShow;
   Tween<Offset> tweenX;
+  Tween<double> tweenHide;
+  Tween<double> tweenShow;
+  double opacity = 1;
+  double ratio = 1;
 
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(duration: const Duration(milliseconds: 250), reverseDuration: Duration(), vsync: this);
+    controller = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
+    controller1 = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
     animationX = CurvedAnimation(parent: controller, curve: Curves.easeIn);
+    animationShow = CurvedAnimation(parent: controller1, curve: Curves.easeIn);
+    tweenHide = Tween<double>(begin: 1, end: 0);
+    tweenShow = Tween<double>(begin: 0, end: 1);
   }
 
   @override
@@ -67,8 +77,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         MediaQuery.of(context).padding.left -
         MediaQuery.of(context).padding.right;
 
-    var left = (availableWidth - 100) / 2;
-    var top = (availableHeight - 100) / 2;
+    var left = (availableWidth - 100) / 2 + 50;
+    var top = (availableHeight - 100) / 2 + 50;
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -104,16 +114,19 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
               )),
               Positioned(
                 key: kkk,
-                left: left + dx,
-                top: top + dy,
-                width: 100,
-                height: 100,
-                child: Container(
-                  color: Colors.green,
-                  width: 100,
-                  height: 100,
-                  child: Center(
-                    child: Text("hello"),
+                left: left + dx - 50 * ratio,
+                top: top + dy - 50 * ratio,
+                width: 100 * ratio,
+                height: 100 * ratio,
+                child: Opacity(
+                  opacity: opacity,
+                  child: Container(
+                    color: Colors.green,
+                    width: 100,
+                    height: 100,
+                    child: Center(
+                      child: Text("hello", style: TextStyle(fontSize: 34 * ratio),),
+                    ),
                   ),
                 ),
               ),
@@ -155,8 +168,36 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         dy = offset.dy;
       });
     });
+    tweenHide.animate(controller)..addListener(() {
+      setState(() {
+        var offset = tweenHide.evaluate(animationX);
+        opacity = offset;
+        ratio = offset;
+      });
+    })..addStatusListener((status) {
+      print(status);
+      if (status == AnimationStatus.completed) {
+        print("completed");
+        bbb();
+      }
+    });
     controller.reset();
     controller.forward();
+  }
+
+  void bbb() {
+    tweenShow.animate(controller1)..addListener(() {
+      setState(() {
+        var offset = tweenShow.evaluate(animationShow);
+        print(offset);
+        opacity = offset;
+        ratio = offset;
+      });
+    })..addStatusListener((status) {
+      print(status);
+    });
+    controller1.reset();
+    controller1.forward();
   }
 }
 
