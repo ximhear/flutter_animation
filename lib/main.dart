@@ -175,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     width: 100,
                     height: 100,
                     child: Center(
-                      child: Text("hello", style: TextStyle(fontSize: 34 * ratio),),
+                      child: Text("hello", style: TextStyle(fontSize: 34 * ratio * scale),),
                     ),
                   ),
                 ),
