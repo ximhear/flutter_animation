@@ -38,8 +38,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Offset currentPt;
   double dx = 0;
   double dy = 0;
-  AnimationController controller;
-  AnimationController controller1;
+  AnimationController controllerThrowAway;
+  AnimationController controllerShowGradually;
   AnimationController controllerScaleUp;
   AnimationController controllerScaleDown;
   Animation<double> animationX;
@@ -64,10 +64,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
-    controller1 = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
-    animationX = CurvedAnimation(parent: controller, curve: Curves.easeIn);
-    animationShow = CurvedAnimation(parent: controller1, curve: Curves.easeIn);
+    controllerThrowAway = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
+    controllerShowGradually = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
+    animationX = CurvedAnimation(parent: controllerThrowAway, curve: Curves.easeIn);
+    animationShow = CurvedAnimation(parent: controllerShowGradually, curve: Curves.easeIn);
     tweenHide = Tween<double>(begin: 1, end: 0);
     tweenShow = Tween<double>(begin: 0, end: 1);
 
@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       end: Offset(0, 0)
     );
 
-    tweenX.animate(controller)..addListener(() {
+    tweenX.animate(controllerThrowAway)..addListener(() {
       setState(() {
         var offset = tweenX.evaluate(animationX);
         dx = offset.dx;
@@ -93,32 +93,36 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     })..addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         print("completed : tweenX");
-        bbb();
+        if (tweenX.end == Offset.zero) {
+        }
+        else {
+          showGradually();
+        }
       }
       else if (status == AnimationStatus.dismissed) {
         print("dismissed : tweenX");
       }
     });
 
-    tweenHide.animate(controller)..addListener(() {
+    tweenHide.animate(controllerThrowAway)..addListener(() {
       setState(() {
         var offset = tweenHide.evaluate(animationX);
-        opacity = offset;
+        opacity = 1;//offset;
         ratio = offset;
       });
     })..addStatusListener((status) {
       // print(status);
       if (status == AnimationStatus.completed) {
         print("completed : tweenHide");
-        bbb();
+        // showGradually();
       }
     });
 
-    tweenShow.animate(controller1)..addListener(() {
+    tweenShow.animate(controllerShowGradually)..addListener(() {
       setState(() {
         var offset = tweenShow.evaluate(animationShow);
         // print(offset);
-        opacity = offset;
+        opacity = 1;//offset;
         ratio = offset;
       });
     })..addStatusListener((status) {
@@ -155,7 +159,10 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    controller.dispose();
+    controllerThrowAway.dispose();
+    controllerShowGradually.dispose();
+    controllerScaleUp.dispose();
+    controllerScaleDown.dispose();
     super.dispose();
   }
 
@@ -176,14 +183,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    var availableHeight = MediaQuery.of(context).size.height -
-        MediaQuery.of(context).padding.top -
-        MediaQuery.of(context).padding.bottom - topBarHeight;
-
-    var availableWidth = MediaQuery.of(context).size.width -
-        MediaQuery.of(context).padding.left -
-        MediaQuery.of(context).padding.right;
-
     var center = getCardCenter();
     var left = center.dx;
     var top = center.dy;
@@ -197,7 +196,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           onVerticalDragEnd: (detail) {
             print("drag end : ${detail.velocity}");
 
-            aaa();
+            throwAway(detail.velocity);
           },
           onVerticalDragUpdate: (detail) {
             print("drag update : ${detail.localPosition}");
@@ -232,7 +231,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             print("onLongPressEnd : ${details.velocity}");
             controllerScaleDown.reset();
             controllerScaleDown.forward();
-            aaa();
+            throwAway(details.velocity);
           },
           child: Stack(
             children: [
@@ -258,6 +257,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   height: 30,
                   child: Container(
                     color: Colors.blue.shade50,
+                  )
+              ),
+              Positioned(
+                  right: 10,
+                  bottom: 10,
+                  width: 30,
+                  height: 30,
+                  child: Container(
+                    color: Colors.red.shade100
                   )
               ),
               Positioned(
@@ -297,27 +305,51 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  static int iindex = 0;
-  void aaa() {
+  void throwAway(Velocity velocity) {
+    print("throwAway");
     var center = getCardCenter();
-    print(center);
-    print(Offset(dx, dy));
-    print(Offset(10, 10 + topBarHeight) - center);
+    print("velocity : $velocity");
+    print("center : $center");
+    print("dx, dy : ${Offset(dx, dy)}");
+    if (dy < -100 || velocity.pixelsPerSecond.dy < -500) {
+      tweenX.begin = Offset(dx, dy);
+      tweenX.end = Offset(10, 10 + topBarHeight) - center + Offset(15, 15);
 
-    int index = iindex;
-    iindex += 1;
-    tweenX.begin = Offset(dx, dy);
-    tweenX.end = Offset(10, 10 + topBarHeight) - center + Offset(15, 15);
+      tweenHide.begin = 1;
+      tweenHide.end = 0;
+    }
+    else if (dy > 100 || velocity.pixelsPerSecond.dy > 500) {
+      var availableWidth = MediaQuery.of(context).size.width -
+          MediaQuery.of(context).padding.left -
+          MediaQuery.of(context).padding.right;
 
-    controller.reset();
-    controller.forward();
+      var availableHeight = MediaQuery.of(context).size.height -
+          MediaQuery.of(context).padding.top -
+          MediaQuery.of(context).padding.bottom;
+
+      tweenX.begin = Offset(dx, dy);
+      tweenX.end = Offset(availableWidth, availableHeight) - Offset(10, 10) - Offset(15, 15) - center;
+
+      tweenHide.begin = 1;
+      tweenHide.end = 0;
+    }
+    else {
+      tweenX.begin = Offset(dx, dy);
+      tweenX.end = Offset.zero;
+
+      tweenHide.begin = 1;
+      tweenHide.end = 1;
+    }
+
+    controllerThrowAway.reset();
+    controllerThrowAway.forward();
   }
 
-  void bbb() {
+  void showGradually() {
     dx = 0;
     dy = 0;
-    controller1.reset();
-    controller1.forward();
+    controllerShowGradually.reset();
+    controllerShowGradually.forward();
   }
 }
 
