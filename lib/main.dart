@@ -370,7 +370,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       tweenHide.begin = 1;
       tweenHide.end = 0;
 
-      tweenCorrectBarOpacity.begin = correctOpacity;
+      tweenCorrectBarOpacity.begin = 1;
       tweenCorrectBarOpacity.end = 0;
       tweenWrongBarOpacity.begin = 0;
       tweenWrongBarOpacity.end = 0;
@@ -392,7 +392,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
       tweenCorrectBarOpacity.begin = 0;
       tweenCorrectBarOpacity.end = 0;
-      tweenWrongBarOpacity.begin = wrongOpacity;
+      tweenWrongBarOpacity.begin = 1;
       tweenWrongBarOpacity.end = 0;
     }
     else {
