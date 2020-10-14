@@ -51,9 +51,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Tween<double> tweenShow;
   Tween<double> tweenScaleUp;
   Tween<double> tweenScaleDown;
+  Tween<double> tweenCorrectBarOpacity;
+  Tween<double> tweenWrongBarOpacity;
   double opacity = 1;
   double ratio = 1;
   double scale = 1;
+
+  double correctOpacity = 0;
+  double wrongOpacity = 0;
 
   static const double cardWidth = 300;
   static const double cardHeight = 200;
@@ -61,18 +66,23 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const double halfCardHeight = cardHeight / 2;
   static const double topBarHeight = 44;
 
+  static const double dragThreshold = 100;
+  static const double dragSpeedThreshold = 500;
+
   @override
   void initState() {
     super.initState();
-    controllerThrowAway = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
-    controllerShowGradually = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
+    controllerThrowAway = AnimationController(duration: const Duration(milliseconds: 300), reverseDuration: Duration(), vsync: this);
+    controllerShowGradually = AnimationController(duration: const Duration(milliseconds: 300), reverseDuration: Duration(), vsync: this);
     animationX = CurvedAnimation(parent: controllerThrowAway, curve: Curves.easeIn);
     animationShow = CurvedAnimation(parent: controllerShowGradually, curve: Curves.easeIn);
     tweenHide = Tween<double>(begin: 1, end: 0);
     tweenShow = Tween<double>(begin: 0, end: 1);
+    tweenCorrectBarOpacity = Tween<double>(begin: 1, end: 0);
+    tweenWrongBarOpacity = Tween<double>(begin: 1, end: 0);
 
-    controllerScaleUp = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
-    controllerScaleDown = AnimationController(duration: const Duration(milliseconds: 1000), reverseDuration: Duration(), vsync: this);
+    controllerScaleUp = AnimationController(duration: const Duration(milliseconds: 300), reverseDuration: Duration(), vsync: this);
+    controllerScaleDown = AnimationController(duration: const Duration(milliseconds: 300), reverseDuration: Duration(), vsync: this);
     animationScaleUp = CurvedAnimation(parent: controllerScaleUp, curve: Curves.easeIn);
     animationScaleDown = CurvedAnimation(parent: controllerScaleDown, curve: Curves.easeIn);
     tweenScaleUp = Tween<double>(begin: 1, end: 1.5);
@@ -84,6 +94,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       end: Offset(0, 0)
     );
 
+    tweenCorrectBarOpacity.animate(controllerThrowAway)..addListener(() {
+      setState(() {
+        correctOpacity = tweenCorrectBarOpacity.evaluate(animationX);
+      });
+    })..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        print("completed : tweenBarOpacity");
+      }
+    });
+    tweenWrongBarOpacity.animate(controllerThrowAway)..addListener(() {
+      setState(() {
+        wrongOpacity = tweenWrongBarOpacity.evaluate(animationX);
+      });
+    })..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        print("completed : tweenBarOpacity");
+      }
+    });
     tweenX.animate(controllerThrowAway)..addListener(() {
       setState(() {
         var offset = tweenX.evaluate(animationX);
@@ -200,13 +228,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           },
           onVerticalDragUpdate: (detail) {
             print("drag update : ${detail.localPosition}");
-            var newPt = detail.localPosition;
-            setState(() {
-              dx += newPt.dx - currentPt.dx;
-              dy += newPt.dy - currentPt.dy;
-            });
-            print("$dx, $dy");
-            currentPt = detail.localPosition;
+            updateDragPosition(detail.localPosition);
           },
           onLongPress: () {
             print("onLongPress");
@@ -219,13 +241,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           },
           onLongPressMoveUpdate: (details) {
             // print("onLongPressMoveUpdate");
-            var newPt = details.localPosition;
-            setState(() {
-              dx += newPt.dx - currentPt.dx;
-              dy += newPt.dy - currentPt.dy;
-            });
-            print("$dx, $dy");
-            currentPt = details.localPosition;
+            updateDragPosition(details.localPosition);
           },
           onLongPressEnd: (details) {
             print("onLongPressEnd : ${details.velocity}");
@@ -249,6 +265,37 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                     color: Colors.pink.shade50,
                   )),
                 ],
+              ),
+              Container(
+                margin: EdgeInsets.only(top: topBarHeight),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Opacity(
+                      opacity: correctOpacity,
+                      child: Container(
+                        height: 50,
+                        color: Colors.green.shade300,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: topBarHeight),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Opacity(
+                      opacity: wrongOpacity,
+                      child: Container(
+                        height: 50,
+                        color: Colors.red.shade300,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Positioned(
                 left: 10,
@@ -311,14 +358,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     print("velocity : $velocity");
     print("center : $center");
     print("dx, dy : ${Offset(dx, dy)}");
-    if (dy < -100 || velocity.pixelsPerSecond.dy < -500) {
+    if (dy < -dragThreshold || velocity.pixelsPerSecond.dy < -dragSpeedThreshold) {
       tweenX.begin = Offset(dx, dy);
       tweenX.end = Offset(10, 10 + topBarHeight) - center + Offset(15, 15);
 
       tweenHide.begin = 1;
       tweenHide.end = 0;
+
+      tweenCorrectBarOpacity.begin = correctOpacity;
+      tweenCorrectBarOpacity.end = 0;
+      tweenWrongBarOpacity.begin = 0;
+      tweenWrongBarOpacity.end = 0;
     }
-    else if (dy > 100 || velocity.pixelsPerSecond.dy > 500) {
+    else if (dy > dragThreshold || velocity.pixelsPerSecond.dy > dragSpeedThreshold) {
       var availableWidth = MediaQuery.of(context).size.width -
           MediaQuery.of(context).padding.left -
           MediaQuery.of(context).padding.right;
@@ -332,6 +384,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
       tweenHide.begin = 1;
       tweenHide.end = 0;
+
+      tweenCorrectBarOpacity.begin = 0;
+      tweenCorrectBarOpacity.end = 0;
+      tweenWrongBarOpacity.begin = wrongOpacity;
+      tweenWrongBarOpacity.end = 0;
     }
     else {
       tweenX.begin = Offset(dx, dy);
@@ -339,6 +396,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
       tweenHide.begin = 1;
       tweenHide.end = 1;
+
+      tweenCorrectBarOpacity.begin = correctOpacity;
+      tweenCorrectBarOpacity.end = 0;
+      tweenWrongBarOpacity.begin = wrongOpacity;
+      tweenWrongBarOpacity.end = 0;
     }
 
     controllerThrowAway.reset();
@@ -350,6 +412,37 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     dy = 0;
     controllerShowGradually.reset();
     controllerShowGradually.forward();
+  }
+
+  void updateDragPosition(Offset newPt) {
+    setState(() {
+      dx += newPt.dx - currentPt.dx;
+      dy += newPt.dy - currentPt.dy;
+    });
+    print("$dx, $dy");
+    currentPt = newPt;
+
+    wrongOpacity = 0;
+    correctOpacity = 0;
+    if (dy < 0) {
+      if (dy < -dragThreshold) {
+        correctOpacity = 1.0;
+      }
+      else {
+        correctOpacity = 0.5 * -dy / dragThreshold;
+      }
+    }
+    else if (dy > 0) {
+      if (dy > dragThreshold) {
+        wrongOpacity = 1.0;
+      }
+      else {
+        wrongOpacity = 0.5 * dy / dragThreshold;
+      }
+    }
+
+    setState(() {
+    });
   }
 }
 
