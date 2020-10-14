@@ -67,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const double topBarHeight = 44;
 
   static const double dragThreshold = 100;
-  static const double dragSpeedThreshold = 500;
+  static const double dragSpeedThreshold = 1600;
 
   @override
   void initState() {
@@ -429,7 +429,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         correctOpacity = 1.0;
       }
       else {
-        correctOpacity = 0.5 * -dy / dragThreshold;
+        correctOpacity = 0.25 * -dy / dragThreshold;
       }
     }
     else if (dy > 0) {
@@ -437,7 +437,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         wrongOpacity = 1.0;
       }
       else {
-        wrongOpacity = 0.5 * dy / dragThreshold;
+        wrongOpacity = 0.25 * dy / dragThreshold;
       }
     }
 
