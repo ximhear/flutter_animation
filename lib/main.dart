@@ -122,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       setState(() {
         var offset = tweenShow.evaluate(animationShow);
         // print(offset);
-        opacity = 1;//offset;
+        opacity = offset;
         ratio = offset;
       });
     })..addStatusListener((status) {
