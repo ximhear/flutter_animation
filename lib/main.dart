@@ -26,15 +26,14 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: "hhhh")
+      home: MyHomePage(title: "hhhh"),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
-// class Hello extends StatelessWidget {
 
-  GlobalKey kkk = GlobalKey();
   Offset startPt;
   Offset currentPt;
   double dx = 0;
@@ -56,6 +55,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   double ratio = 1;
   double scale = 1;
 
+  static const double cardWidth = 300;
+  static const double cardHeight = 200;
+  static const double halfCardWidth = cardWidth / 2;
+  static const double halfCardHeight = cardHeight / 2;
+  static const double topBarHeight = 44;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +77,80 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     animationScaleDown = CurvedAnimation(parent: controllerScaleDown, curve: Curves.easeIn);
     tweenScaleUp = Tween<double>(begin: 1, end: 1.5);
     tweenScaleDown = Tween<double>(begin: 1.5, end: 1);
+
+
+    tweenX = Tween<Offset>(
+      begin: Offset(0, 0),
+      end: Offset(0, 0)
+    );
+
+    tweenX.animate(controller)..addListener(() {
+      setState(() {
+        var offset = tweenX.evaluate(animationX);
+        dx = offset.dx;
+        dy = offset.dy;
+      });
+    })..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        print("completed : tweenX");
+        bbb();
+      }
+      else if (status == AnimationStatus.dismissed) {
+        print("dismissed : tweenX");
+      }
+    });
+
+    tweenHide.animate(controller)..addListener(() {
+      setState(() {
+        var offset = tweenHide.evaluate(animationX);
+        opacity = offset;
+        ratio = offset;
+      });
+    })..addStatusListener((status) {
+      // print(status);
+      if (status == AnimationStatus.completed) {
+        print("completed : tweenHide");
+        bbb();
+      }
+    });
+
+    tweenShow.animate(controller1)..addListener(() {
+      setState(() {
+        var offset = tweenShow.evaluate(animationShow);
+        // print(offset);
+        opacity = offset;
+        ratio = offset;
+      });
+    })..addStatusListener((status) {
+      // print(status);
+      if (status == AnimationStatus.completed) {
+        print("completed : tweenShow");
+      }
+    });
+
+    tweenScaleDown.animate(controllerScaleDown)..addListener(() {
+      setState(() {
+        scale = tweenScaleDown.evaluate(animationScaleDown);
+        // print("scale : $scale");
+      });
+    })..addStatusListener((status) {
+      // print(status);
+      if (status == AnimationStatus.completed) {
+        print("completed : tweenScaleDown");
+      }
+    });
+
+    tweenScaleUp.animate(controllerScaleUp)..addListener(() {
+      setState(() {
+        scale = tweenScaleUp.evaluate(animationScaleUp);
+        // print("scale : $scale");
+      });
+    })..addStatusListener((status) {
+      // print(status);
+      if (status == AnimationStatus.completed) {
+        print("completed : tweenScaleUp");
+      }
+    });
   }
 
   @override
@@ -80,25 +159,35 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Offset getCardCenter() {
     var availableHeight = MediaQuery.of(context).size.height -
-        AppBar().preferredSize.height -
         MediaQuery.of(context).padding.top -
-        MediaQuery.of(context).padding.bottom;
+        MediaQuery.of(context).padding.bottom - topBarHeight;
 
     var availableWidth = MediaQuery.of(context).size.width -
         MediaQuery.of(context).padding.left -
         MediaQuery.of(context).padding.right;
 
-    var left = (availableWidth - 100 * scale) / 2 + 50 * scale;
-    var top = (availableHeight - 100 * scale) / 2 + 50 * scale;
+    var left = availableWidth / 2;
+    var top = availableHeight / 2 + topBarHeight;
+
+    return Offset(left, top);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var availableHeight = MediaQuery.of(context).size.height -
+        MediaQuery.of(context).padding.top -
+        MediaQuery.of(context).padding.bottom - topBarHeight;
+
+    var availableWidth = MediaQuery.of(context).size.width -
+        MediaQuery.of(context).padding.left -
+        MediaQuery.of(context).padding.right;
+
+    var center = getCardCenter();
+    var left = center.dx;
+    var top = center.dy;
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text("title"),
-      ),
       body: SafeArea(
         child: GestureDetector(
           onVerticalDragStart: (detail) {
@@ -122,12 +211,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           },
           onLongPress: () {
             print("onLongPress");
-            tweenScaleUp.animate(controllerScaleUp)..addListener(() {
-              setState(() {
-                scale = tweenScaleUp.evaluate(animationScaleUp);
-                print("scale : $scale");
-              });
-            });
             controllerScaleUp.reset();
             controllerScaleUp.forward();
           },
@@ -147,57 +230,65 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           },
           onLongPressEnd: (details) {
             print("onLongPressEnd : ${details.velocity}");
-            tweenScaleDown.animate(controllerScaleDown)..addListener(() {
-              setState(() {
-                scale = tweenScaleDown.evaluate(animationScaleDown);
-                print("scale : $scale");
-              });
-            });
             controllerScaleDown.reset();
             controllerScaleDown.forward();
             aaa();
           },
           child: Stack(
             children: [
-              Expanded(child: Container(
-                color: Colors.pink,
-              )),
+              Column(
+                children: [
+                  Container(
+                    height: topBarHeight,
+                    child: Row(
+                      children: [
+                        IconButton(icon: Icon(Icons.arrow_back), onPressed: () {})
+                      ],
+                    ),
+                  ),
+                  Expanded(child: Container(
+                    color: Colors.pink.shade50,
+                  )),
+                ],
+              ),
               Positioned(
-                key: kkk,
-                left: left + dx - 50 * ratio * scale,
-                top: top + dy - 50 * ratio * scale,
-                width: 100 * ratio * scale,
-                height: 100 * ratio * scale,
+                left: 10,
+                  top: topBarHeight + 10,
+                  width: 30,
+                  height: 30,
+                  child: Container(
+                    color: Colors.blue.shade50,
+                  )
+              ),
+              Positioned(
+                left: left + dx - halfCardWidth * ratio * scale,
+                top: top + dy - halfCardHeight * ratio * scale,
+                width: cardWidth * ratio * scale,
+                height: cardHeight * ratio * scale,
                 child: Opacity(
                   opacity: opacity,
                   child: Container(
-                    color: Colors.green,
-                    width: 100,
-                    height: 100,
+                    decoration: BoxDecoration(
+                        color: Colors.green.shade100,
+                        border: Border.all(
+                          color: Colors.green.shade100,
+                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(10))
+                    ),
+                    // color: Colors.green.shade100,
+                    width: cardWidth * ratio * scale,
+                    height: cardHeight * ratio * scale,
                     child: Center(
-                      child: Text("hello", style: TextStyle(fontSize: 34 * ratio * scale),),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Test1", style: TextStyle(fontSize: 34 * ratio * scale),),
+                          Text("Test2", style: TextStyle(fontSize: 20 * ratio * scale, color: Colors.black38),),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Column(
-                children: [
-                  Center(
-                    child: FlatButton(
-                      child: Text("move"),
-                      onPressed: () {
-                      },
-                    ),
-                  ),
-                  Center(
-                    child: FlatButton(
-                      child: Text("animate"),
-                      onPressed: () {
-                          aaa();
-                      },
-                    ),
-                  )
-                ],
               ),
             ],
           ),
@@ -206,46 +297,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+  static int iindex = 0;
   void aaa() {
-    tweenX = Tween<Offset>(
-      begin: Offset(dx, dy),
-      end: Offset.zero,
-    );
-    tweenX.animate(controller)..addListener(() {
-      setState(() {
-        var offset = tweenX.evaluate(animationX);
-        dx = offset.dx;
-        dy = offset.dy;
-      });
-    });
-    tweenHide.animate(controller)..addListener(() {
-      setState(() {
-        var offset = tweenHide.evaluate(animationX);
-        opacity = offset;
-        ratio = offset;
-      });
-    })..addStatusListener((status) {
-      print(status);
-      if (status == AnimationStatus.completed) {
-        print("completed");
-        bbb();
-      }
-    });
+    var center = getCardCenter();
+    print(center);
+    print(Offset(dx, dy));
+    print(Offset(10, 10 + topBarHeight) - center);
+
+    int index = iindex;
+    iindex += 1;
+    tweenX.begin = Offset(dx, dy);
+    tweenX.end = Offset(10, 10 + topBarHeight) - center + Offset(15, 15);
+
     controller.reset();
     controller.forward();
   }
 
   void bbb() {
-    tweenShow.animate(controller1)..addListener(() {
-      setState(() {
-        var offset = tweenShow.evaluate(animationShow);
-        print(offset);
-        opacity = offset;
-        ratio = offset;
-      });
-    })..addStatusListener((status) {
-      print(status);
-    });
+    dx = 0;
+    dy = 0;
     controller1.reset();
     controller1.forward();
   }
