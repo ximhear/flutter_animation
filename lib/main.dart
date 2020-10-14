@@ -217,18 +217,19 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return Scaffold(
       body: SafeArea(
         child: GestureDetector(
-          onVerticalDragStart: (detail) {
-            print("drag start : ${detail.localPosition}");
-            currentPt = detail.localPosition;
+          onVerticalDragStart: (details) {
+            print("drag start : ${details.localPosition}");
+            currentPt = details.localPosition;
+            updateDragPosition(details.localPosition);
           },
-          onVerticalDragEnd: (detail) {
-            print("drag end : ${detail.velocity}");
+          onVerticalDragEnd: (details) {
+            print("drag end : ${details.velocity}");
 
-            throwAway(detail.velocity);
+            throwAway(details.velocity);
           },
-          onVerticalDragUpdate: (detail) {
-            print("drag update : ${detail.localPosition}");
-            updateDragPosition(detail.localPosition);
+          onVerticalDragUpdate: (details) {
+            print("drag update : ${details.localPosition}");
+            updateDragPosition(details.localPosition);
           },
           onLongPress: () {
             print("onLongPress");
@@ -238,6 +239,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           onLongPressStart: (details) {
             print("onLongPressStart");
             currentPt = details.localPosition;
+            updateDragPosition(details.localPosition);
           },
           onLongPressMoveUpdate: (details) {
             // print("onLongPressMoveUpdate");
@@ -354,6 +356,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void throwAway(Velocity velocity) {
     print("throwAway");
+    if (controllerThrowAway.isAnimating || controllerShowGradually.isAnimating) {
+      return;
+    }
     var center = getCardCenter();
     print("velocity : $velocity");
     print("center : $center");
@@ -415,6 +420,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   }
 
   void updateDragPosition(Offset newPt) {
+    if (controllerThrowAway.isAnimating || controllerShowGradually.isAnimating) {
+      return;
+    }
     setState(() {
       dx += newPt.dx - currentPt.dx;
       dy += newPt.dy - currentPt.dy;
