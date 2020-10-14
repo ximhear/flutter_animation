@@ -34,7 +34,6 @@ class MyApp extends StatelessWidget {
 
 class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
-  Offset startPt;
   Offset currentPt;
   double dx = 0;
   double dy = 0;
