@@ -264,13 +264,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 },
                 child: Stack(
                   children: [
-                    // Column(
-                    //   children: [
-                    //     Expanded(child: Container(
-                    //       color: Colors.pink.shade50,
-                    //     )),
-                    //   ],
-                    // ),
+                    Column(
+                      children: [
+                        Expanded(child: Container(
+                          color: Colors.pink.shade50,
+                        )),
+                      ],
+                    ),
                     Container(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
