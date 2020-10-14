@@ -67,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   static const double topBarHeight = 44;
 
   static const double dragThreshold = 100;
-  static const double dragSpeedThreshold = 1600;
+  static const double dragSpeedThreshold = 1000;
 
   @override
   void initState() {
