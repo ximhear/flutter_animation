@@ -204,7 +204,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         MediaQuery.of(context).padding.right;
 
     var left = availableWidth / 2;
-    var top = availableHeight / 2 + topBarHeight;
+    var top = availableHeight / 2;
 
     return Offset(left, top);
   }
@@ -216,139 +216,143 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     var top = center.dy;
     return Scaffold(
       body: SafeArea(
-        child: GestureDetector(
-          onVerticalDragStart: (details) {
-            print("drag start : ${details.localPosition}");
-            currentPt = details.localPosition;
-            updateDragPosition(details.localPosition);
-          },
-          onVerticalDragEnd: (details) {
-            print("drag end : ${details.velocity}");
-
-            throwAway(details.velocity);
-          },
-          onVerticalDragUpdate: (details) {
-            print("drag update : ${details.localPosition}");
-            updateDragPosition(details.localPosition);
-          },
-          onLongPress: () {
-            print("onLongPress");
-            controllerScaleUp.reset();
-            controllerScaleUp.forward();
-          },
-          onLongPressStart: (details) {
-            print("onLongPressStart");
-            currentPt = details.localPosition;
-            updateDragPosition(details.localPosition);
-          },
-          onLongPressMoveUpdate: (details) {
-            // print("onLongPressMoveUpdate");
-            updateDragPosition(details.localPosition);
-          },
-          onLongPressEnd: (details) {
-            print("onLongPressEnd : ${details.velocity}");
-            controllerScaleDown.reset();
-            controllerScaleDown.forward();
-            throwAway(details.velocity);
-          },
-          child: Stack(
-            children: [
-              Column(
+        child: Column(
+          children: [
+            Container(
+              height: topBarHeight,
+              child: Row(
                 children: [
-                  Container(
-                    height: topBarHeight,
-                    child: Row(
-                      children: [
-                        IconButton(icon: Icon(Icons.arrow_back), onPressed: () {})
-                      ],
-                    ),
-                  ),
-                  Expanded(child: Container(
-                    color: Colors.pink.shade50,
-                  )),
+                  IconButton(icon: Icon(Icons.arrow_back), onPressed: () {})
                 ],
               ),
-              Container(
-                margin: EdgeInsets.only(top: topBarHeight),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+            ),
+            Expanded(
+              child: GestureDetector(
+                onVerticalDragStart: (details) {
+                  print("drag start : ${details.localPosition}");
+                  currentPt = details.localPosition;
+                  updateDragPosition(details.localPosition);
+                },
+                onVerticalDragEnd: (details) {
+                  print("drag end : ${details.velocity}");
+
+                  throwAway(details.velocity);
+                },
+                onVerticalDragUpdate: (details) {
+                  print("drag update : ${details.localPosition}");
+                  updateDragPosition(details.localPosition);
+                },
+                onLongPress: () {
+                  print("onLongPress");
+                  controllerScaleUp.reset();
+                  controllerScaleUp.forward();
+                },
+                onLongPressStart: (details) {
+                  print("onLongPressStart");
+                  currentPt = details.localPosition;
+                  updateDragPosition(details.localPosition);
+                },
+                onLongPressMoveUpdate: (details) {
+                  // print("onLongPressMoveUpdate");
+                  updateDragPosition(details.localPosition);
+                },
+                onLongPressEnd: (details) {
+                  print("onLongPressEnd : ${details.velocity}");
+                  controllerScaleDown.reset();
+                  controllerScaleDown.forward();
+                  throwAway(details.velocity);
+                },
+                child: Stack(
                   children: [
-                    Opacity(
-                      opacity: correctOpacity,
-                      child: Container(
-                        height: 50,
-                        color: Colors.green.shade300,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(top: topBarHeight),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Opacity(
-                      opacity: wrongOpacity,
-                      child: Container(
-                        height: 50,
-                        color: Colors.red.shade300,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                left: 10,
-                  top: topBarHeight + 10,
-                  width: 30,
-                  height: 30,
-                  child: Container(
-                    color: Colors.blue.shade50,
-                  )
-              ),
-              Positioned(
-                  right: 10,
-                  bottom: 10,
-                  width: 30,
-                  height: 30,
-                  child: Container(
-                    color: Colors.red.shade100
-                  )
-              ),
-              Positioned(
-                left: left + dx - halfCardWidth * ratio * scale,
-                top: top + dy - halfCardHeight * ratio * scale,
-                width: cardWidth * ratio * scale,
-                height: cardHeight * ratio * scale,
-                child: Opacity(
-                  opacity: opacity,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.green.shade100,
-                        border: Border.all(
-                          color: Colors.green.shade100,
-                        ),
-                        borderRadius: BorderRadius.all(Radius.circular(10))
-                    ),
-                    // color: Colors.green.shade100,
-                    width: cardWidth * ratio * scale,
-                    height: cardHeight * ratio * scale,
-                    child: Center(
+                    // Column(
+                    //   children: [
+                    //     Expanded(child: Container(
+                    //       color: Colors.pink.shade50,
+                    //     )),
+                    //   ],
+                    // ),
+                    Container(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text("Test1", style: TextStyle(fontSize: 34 * ratio * scale),),
-                          Text("Test2", style: TextStyle(fontSize: 20 * ratio * scale, color: Colors.black38),),
+                          Opacity(
+                            opacity: correctOpacity,
+                            child: Container(
+                              height: 50,
+                              color: Colors.green.shade300,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
+                    Container(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Opacity(
+                            opacity: wrongOpacity,
+                            child: Container(
+                              height: 50,
+                              color: Colors.red.shade300,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      left: 10,
+                        top: 10,
+                        width: 30,
+                        height: 30,
+                        child: Container(
+                          color: Colors.blue.shade50,
+                        )
+                    ),
+                    Positioned(
+                        right: 10,
+                        bottom: 10,
+                        width: 30,
+                        height: 30,
+                        child: Container(
+                          color: Colors.red.shade100
+                        )
+                    ),
+                    Positioned(
+                      left: left + dx - halfCardWidth * ratio * scale,
+                      top: top + dy - halfCardHeight * ratio * scale,
+                      width: cardWidth * ratio * scale,
+                      height: cardHeight * ratio * scale,
+                      child: Opacity(
+                        opacity: opacity,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              border: Border.all(
+                                color: Colors.green.shade100,
+                              ),
+                              borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                          // color: Colors.green.shade100,
+                          width: cardWidth * ratio * scale,
+                          height: cardHeight * ratio * scale,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text("Test1", style: TextStyle(fontSize: 34 * ratio * scale),),
+                                Text("Test2", style: TextStyle(fontSize: 20 * ratio * scale, color: Colors.black38),),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -365,7 +369,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     print("dx, dy : ${Offset(dx, dy)}");
     if (dy < -dragThreshold || velocity.pixelsPerSecond.dy < -dragSpeedThreshold) {
       tweenX.begin = Offset(dx, dy);
-      tweenX.end = Offset(10, 10 + topBarHeight) - center + Offset(15, 15);
+      tweenX.end = Offset(10, 10) - center + Offset(15, 15);
 
       tweenHide.begin = 1;
       tweenHide.end = 0;
@@ -382,7 +386,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
       var availableHeight = MediaQuery.of(context).size.height -
           MediaQuery.of(context).padding.top -
-          MediaQuery.of(context).padding.bottom;
+          MediaQuery.of(context).padding.bottom - topBarHeight;
 
       tweenX.begin = Offset(dx, dy);
       tweenX.end = Offset(availableWidth, availableHeight) - Offset(10, 10) - Offset(15, 15) - center;
